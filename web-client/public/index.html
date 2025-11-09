@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Roblox-clone - runtime</title></head>
+<body>
+<canvas id="c" style="width:100vw;height:100vh;display:block"></canvas>
+<script src="https://unpkg.com/three@0.154.0/build/three.min.js"></script>
+<script>
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({canvas: document.getElementById('c')});
+renderer.setSize(innerWidth, innerHeight);
+
+const geometry = new THREE.BoxGeometry(1,1,1);
+const material = new THREE.MeshNormalMaterial();
+const player = new THREE.Mesh(geometry, material);
+scene.add(player);
+
+camera.position.z = 5;
+
+const otherPlayers = {};
+
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+animate();
+
+const ws = new WebSocket('ws://localhost:4000');
+ws.onmessage = (ev) => {
+  const d = JSON.parse(ev.data);
+  if (d.type === 'welcome') {
+    console.log('id', d.id);
+  } else if (d.type === 'player-pos') {
+    const id = d.id;
+    if (!otherPlayers[id]) {
+      const m = new THREE.Mesh(geometry, material.clone());
+      scene.add(m);
+      otherPlayers[id] = m;
+    }
+    otherPlayers[id].position.set(d.pos.x, d.pos.y, d.pos.z);
+  } else if (d.type === 'player-left') {
+    const id = d.id;
+    if (otherPlayers[id]) { scene.remove(otherPlayers[id]); delete otherPlayers[id]; }
+  }
+};
+
+setInterval(() => {
+  const pos = { x: player.position.x, y: player.position.y, z: player.position.z };
+  if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'pos', pos }));
+}, 100);
+</script>
+</body>
+</html>
