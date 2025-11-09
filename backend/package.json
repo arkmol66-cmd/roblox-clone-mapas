@@ -1,0 +1,9 @@
+{
+  "name": "roblox-clone-backend",
+  "version": "0.1.0",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "ws": "node src/ws-server.js"
+  }
+}
