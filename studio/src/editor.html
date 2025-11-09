@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Mini Studio</title></head>
+<body>
+<button id="add">Adicionar bloco</button>
+<button id="save">Salvar mundo</button>
+<div id="canvas"></div>
+<script src="https://unpkg.com/three@0.154.0/build/three.min.js"></script>
+<script>
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(800,600);
+document.getElementById('canvas').appendChild(renderer.domElement);
+camera.position.z = 10;
+
+const blocks = [];
+
+function addBlock(x=0,y=0,z=0){
+  const geo = new THREE.BoxGeometry(1,1,1);
+  const mat = new THREE.MeshNormalMaterial();
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x,y,z);
+  scene.add(m);
+  blocks.push(m);
+}
+
+document.getElementById('add').onclick = ()=> addBlock(Math.random()*4-2,Math.random()*2, Math.random()*4-2);
+document.getElementById('save').onclick = () => {
+  const world = blocks.map(b => ({ x: b.position.x, y: b.position.y, z: b.position.z }));
+  const data = JSON.stringify(world, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'world.json';
+  a.click();
+};
+
+function animate(){
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
